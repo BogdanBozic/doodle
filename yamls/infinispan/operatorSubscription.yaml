@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: infinispan
+  namespace: infinispan-operator
+spec:
+  channel: 2.3.x
+  name: infinispan
+  source: operatorhubio-catalog
+  sourceNamespace: olm

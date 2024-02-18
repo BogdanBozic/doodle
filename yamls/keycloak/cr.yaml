@@ -1,0 +1,79 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "route"
+    nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
+  labels:
+    app: keycloak
+  name: keycloak
+  namespace: keycloak
+spec:
+  hostname:
+    hostname: keycloak.local
+  db:
+    host: postgresql.postgresql.svc.cluster.local
+    poolMinSize: 30 
+    poolInitialSize: 30
+    poolMaxSize: 30
+    passwordSecret:
+      name: postgresql
+      key: postgres-password
+  features:
+    enabled:
+      - multi-site 
+  additionalOptions:
+    - name: cache-config-file 
+      value: kcb-infinispan-cache-remote-store-config.xml
+    - name: log-console-output
+      value: default
+    - name: remote-store-host 
+      value: "test-infinispan.infinispan-cluster.svc"
+    - name: remote-store-port 
+      value: "11222"
+    - name: remote-store-username 
+      secret:
+        name: remote-store-secret
+        key: username
+    - name: remote-store-password 
+      secret:
+        name: remote-store-secret
+        key: password
+    - name: log-console-output
+      value: json
+    - name: metrics-enabled 
+      value: 'true'
+  http:
+    httpEnabled: true
+    tlsSecret: keycloak-tls-secret
+  instances: 3
+  unsupported:
+    podTemplate:
+      spec:
+        containers:
+          - env:
+              - name: 'QUARKUS_THREAD_POOL_MAX_THREADS' 
+                value: "66"
+              - name: JAVA_OPTS_APPEND 
+                value: >
+                  -Xms512m -Xmx1524m -Djgroups.thread_dumps_threshold=1 -Djboss.site.name=keycloak
+            resources:
+              requests:
+                cpu: "2"
+                memory: "1250M"
+              limits:
+                cpu: "6"
+                memory: "2250M"
+            volumeMounts:
+              - name: kcb-infinispan-cache-config 
+                mountPath: /opt/keycloak/conf/kcb-infinispan-cache-remote-store-config.xml
+                subPath: kcb-infinispan-cache-remote-store-config.xml
+                readOnly: true
+        volumes:
+          - name: kcb-infinispan-cache-config 
+            configMap:
+              name: kcb-infinispan-cache-config
+              items:
+                - key: kcb-infinispan-cache-remote-store-config.xml
+                  path: kcb-infinispan-cache-remote-store-config.xml

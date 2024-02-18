@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infinispan-operator
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infinispan-cluster
+---

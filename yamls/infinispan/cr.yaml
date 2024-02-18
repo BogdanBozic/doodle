@@ -1,0 +1,11 @@
+apiVersion: infinispan.org/v1
+kind: Infinispan
+metadata:
+  name: test-infinispan
+  namespace: infinispan-cluster
+spec:
+  replicas: 3
+  configListener:
+    enabled: true
+    logging:
+      level: debug
